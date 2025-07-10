@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>DB Service PK</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <style>
+    :root {
+      --bg: #f9f9f9;
+      --text: #000;
+      --card: #fff;
+      --shadow: rgba(0, 0, 0, 0.1);
+    }
+    body.dark {
+      --bg: #111;
+      --text: #eee;
+      --card: #1e1e1e;
+      --shadow: rgba(255, 255, 255, 0.05);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px 10px;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+    .container {
+      width: 100%;
+      max-width: 480px;
+      background: var(--card);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 10px var(--shadow);
+    }
+    .header {
+      background-color: #111;
+      color: white;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+    }
+    .header-logo-img {
+      border-radius: 50%;
+      height: 45px;
+      width: 45px;
+      object-fit: cover;
+      border: 2px solid #fff;
+      cursor: pointer;
+    }
+    .header-center {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      color: green;
+      font-weight: bold;
+      font-size: 20px;
+      text-shadow: 1px 1px 2px #000;
+    }
+    .theme-toggle {
+      font-size: 22px;
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+    }
+    .form-section { padding: 15px; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label {
+      display: block; margin-bottom: 5px; font-weight: 600;
+    }
+    .form-group input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .submit-button {
+      background-color: green;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%;
+      font-size: 16px;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 16px;
+      line-height: 1.8;
+      padding: 10px;
+      border-radius: 5px;
+      background-color: #f2f2f2;
+    }
+    .sim-card {
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 10px;
+      background: white;
+      box-shadow: 0 2px 5px var(--shadow);
+    }
+    .contact-card {
+      margin-top: 20px;
+      padding: 20px;
+      background: #e6ffe6;
+      border-radius: 12px;
+      border: 1px solid #ddd;
+      box-shadow: 0 4px 10px var(--shadow);
+      text-align: center;
+    }
+    .contact-card h3 {
+      color: #1f9f40;
+      margin-bottom: 10px;
+    }
+    .contact-card p {
+      font-size: 15px;
+      color: #222;
+      line-height: 1.6;
+    }
+
+    /* WhatsApp Bubble Style */
+    .chat-bubble {
+      display: inline-flex;
+      align-items: center;
+      padding: 12px 18px;
+      background-color: #25d366;
+      border-radius: 25px;
+      color: #fff;
+      font-size: 15px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      text-decoration: none;
+      position: relative;
+      transition: all 0.3s ease;
+      margin-top: 18px;
+    }
+
+    .chat-bubble:hover {
+      background-color: #1ebe5d;
+      transform: scale(1.03);
+    }
+
+    .chat-bubble::after {
+      content: "";
+      position: absolute;
+      bottom: -8px;
+      left: 20px;
+      width: 0;
+      height: 0;
+      border: 8px solid transparent;
+      border-top-color: #25d366;
+    }
+
+    .chat-bubble img {
+      width: 20px;
+      height: 20px;
+      margin-right: 10px;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+
+    @media (max-width: 480px) {
+      .header-center { font-size: 18px; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div onclick="document.getElementById('upload').click()" style="margin-right: 10px;">
+      <img src="https://i.supaimg.com/4f71a7aa-9e44-450a-922b-cbc42c3da0c6.png" alt="Logo" class="header-logo-img" id="dashboardProfileImage">
+      <input type="file" accept="image/*" id="upload" onchange="previewImage(event)" style="display: none;">
+    </div>
+    <div class="header-center">DB Service PK</div>
+    <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+  </div>
+
+  <div class="form-section">
+    <div class="form-group">
+      <label for="phone">Enter Phone Number or CNIC:</label>
+      <input type="text" id="phone" placeholder="e.g. 0300xxxxxxx or 3810xxxxxxxxx">
+    </div>
+    <button class="submit-button" onclick="fetchData()">Find Data</button>
+    <div id="result"></div>
+
+    <!-- ✅ Developer Intro Card -->
+    <div class="contact-card">
+      <h3>👨‍💻 About the Developer</h3>
+      <p>
+        Hi! I'm <strong>Haseeb Sahil</strong>, the creator of <strong>DB Service PK</strong>. This tool helps you quickly and securely find SIM data using CNIC or phone number.<br><br>
+        🔧 I specialize in web tools, app stores, and automation services.<br><br>
+        📬 For suggestions, bug reports or collaboration, feel free to contact me anytime.
+      </p>
+
+      <!-- ✅ Stylish WhatsApp Bubble -->
+      <a href="https://wa.me/923474965595" class="chat-bubble" target="_blank" title="Chat on WhatsApp">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" />
+        Chat on WhatsApp
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyD9ziG2Gj-Q3KpxjPTbckgMZOG81auKixg",
+    authDomain: "dbserverregister.firebaseapp.com",
+    databaseURL: "https://dbserverregister-default-rtdb.firebaseio.com",
+    projectId: "dbserverregister",
+    storageBucket: "dbserverregister.appspot.com",
+    messagingSenderId: "517682165017",
+    appId: "1:517682165017:web:c560816e47a978bcfa5c42"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  function previewImage(event) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      document.getElementById('dashboardProfileImage').src = reader.result;
+    };
+    reader.readAsDataURL(event.target.files[0]);
+  }
+
+  function toggleTheme() {
+    document.body.classList.toggle('dark');
+    const icon = document.querySelector('.theme-toggle');
+    icon.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+  }
+
+  async function fetchData() {
+    const number = document.getElementById("phone").value.trim();
+    const resultDiv = document.getElementById("result");
+    resultDiv.innerHTML = "";
+
+    if (!number) {
+      resultDiv.innerHTML = "⚠️ Please enter phone number or CNIC.";
+      return;
+    }
+
+    if (!/^(03\d{9}|3810\d{9}|\d{13})$/.test(number)) {
+      resultDiv.innerHTML = "⚠️ Invalid number format. Use e.g. 0300xxxxxxx or 3810xxxxxxxxx";
+      return;
+    }
+
+    resultDiv.innerHTML = '⏳ Fetching data...';
+
+    const apiUrl = `https://pakdatabase.site/api/search.php?username=Kami&password=123456&search_term=${encodeURIComponent(number)}`;
+
+    try {
+      const res = await fetch(apiUrl);
+      const data = await res.json();
+      let html = "";
+      let count = 0;
+      const addedNumbers = new Set();
+
+      for (const key in data) {
+        const records = data[key];
+        if (Array.isArray(records)) {
+          for (const entry of records) {
+            let mobile = entry.Mobile || entry.SUB_NO || "";
+            if (!mobile || addedNumbers.has(mobile)) continue;
+
+            if (mobile.startsWith("92") && mobile.length === 12) {
+              mobile = "0" + mobile.slice(2);
+            }
+
+            addedNumbers.add(mobile);
+            const name = entry.Name || entry.NAME || "N/A";
+            const cnic = entry.CNIC || entry.NIC || "N/A";
+            const address = entry.Address || entry.ADDRESS || "N/A";
+            const operator = entry.Operator || key;
+
+            count++;
+            html += `
+              <div class="sim-card">
+                🔹 <strong>Result ${count}</strong><br>
+                📞 <strong>Mobile:</strong> ${mobile}<br>
+                👤 <strong>Name:</strong> ${name}<br>
+                🆔 <strong>CNIC:</strong> ${cnic}<br>
+                📍 <strong>Address:</strong> ${address}<br>
+                📶 <strong>Operator:</strong> ${operator}
+              </div>
+            `;
+          }
+        }
+      }
+
+      if (html) {
+        const isCnic = /^\d{13}$/.test(number);
+        const totalSimHtml = isCnic
+          ? `<div style="font-weight:bold; font-size:18px; color:green; margin-bottom:10px;">✅ Total SIMs: ${count}</div>`
+          : "";
+        resultDiv.innerHTML = totalSimHtml + html;
+
+        const log = {
+          term: number,
+          total: count,
+          date: new Date().toLocaleString(),
+          device: navigator.userAgent
+        };
+        db.ref("searchLogs").push(log);
+      } else {
+        resultDiv.innerHTML = `
+          <div style="color:red;">❌ No Data Found ❌</div>
+          <div class="contact-card">
+            <p>No record was found for the provided number. Please verify and try again.</p>
+            <a href="https://wa.me/923474965595" class="chat-bubble" target="_blank">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" />
+              Chat on WhatsApp
+            </a>
+          </div>`;
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      resultDiv.innerHTML = `
+        <div style="color:red;">❌ Error fetching data ❌</div>
+        <div class="contact-card">
+          <p>Something went wrong while connecting to the database.</p>
+          <a href="https://wa.me/923474965595" class="chat-bubble" target="_blank">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" />
+            Chat on WhatsApp
+          </a>
+        </div>`;
+    }
+  }
+</script>
+</body>
+</html>
